@@ -53,7 +53,7 @@ class VideoRecorder:
             logger.warning("No video recording in progress to stop.")
 
     def _record_video(self):
-        cap = cv2.VideoCapture(self.video_source)
+        cap = cv2.VideoCapture(self.video_source, cv2.CAP_DSHOW)
         if not cap.isOpened():
             logger.error("Failed to open video source.")
             self.camera_ready.set()  # Завершаем ожидание в start_recording
@@ -99,5 +99,5 @@ if __name__ == '__main__':
     
     # Пример запуска записи видео
     processor.start_recording("output.mp4")
-    time.sleep(20)  
+    time.sleep(5)  
     processor.stop_recording()
