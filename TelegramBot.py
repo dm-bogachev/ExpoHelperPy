@@ -4,6 +4,7 @@ import asyncio
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 import commands, handlers
 from UserService import UserService
+from Config import Config
 
 # Настройка логирования (если ещё не настроена в основном модуле)
 logging.basicConfig(
@@ -14,7 +15,7 @@ logging.basicConfig(
 class TelegramBot(threading.Thread):
     def __init__(self):
         super().__init__()
-        Config.load()
+        Config.init()
         self.token = Config.get("telegram_bot_api_token") 
         logging.info("Initializing TelegramBot with token: %s", self.token)
         UserService.init()
@@ -46,7 +47,7 @@ class TelegramBot(threading.Thread):
 
 if __name__ == "__main__":
     from Config import Config
-    Config.load()
+    Config.init()
     TOKEN = Config.get("telegram_bot_api_token")  # замените на реальный токен
     logging.info("Starting TelegramBot with token from configuration.")
     bot_thread = TelegramBot()

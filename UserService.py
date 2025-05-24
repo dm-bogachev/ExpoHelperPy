@@ -84,6 +84,23 @@ class UserService:
                 logger.warning("User with chat_id %s not found. Update skipped.", chat_id)
 
     @classmethod
+    def update_user_from_userdata(cls, user_data):
+        logger.info("Updating user from userdata with chat_id: %s", user_data.chat_id)
+        with cls._Session() as session:
+            user = session.query(UserData).filter_by(chat_id=user_data.chat_id).first()
+            if user:
+                for key, value in user_data.__dict__.items():
+                    if key.startswith("_"):  # пропускаем служебные поля
+                        continue
+                    if hasattr(user, key):
+                        logger.info("Updating field '%s' to '%s'", key, value)
+                        setattr(user, key, value)
+                session.commit()
+                logger.info("User from userdata updated successfully.")
+            else:
+                logger.warning("User with chat_id %s not found. Update skipped.", user_data.chat_id)
+
+    @classmethod
     def delete_user(cls, chat_id):
         logger.info("Deleting user with chat_id: %s", chat_id)
         with cls._Session() as session:
@@ -105,7 +122,7 @@ class UserService:
 
 if __name__ == "__main__":
     # Example usage
-    Config.load()
+    Config.init()
     UserService.init()
     
     UserService.add_user(

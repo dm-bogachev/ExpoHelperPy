@@ -10,15 +10,14 @@ logging.basicConfig(
 )
 
 class VideoEditor:
-    def __init__(self, video_path):
-        Config.load()
-        self.video_path = video_path
+    def __init__(self):
+        Config.init()
         self.audio_path = Config.get('sound_name')
 
-    def trim_and_add_audio(self, start_sec, end_sec, output_path):
+    def trim_and_add_audio(self, video_path, start_sec, end_sec, output_path):
         try:
-            logger.info(f"Loading video: {self.video_path}")
-            video_clip = VideoFileClip(self.video_path)
+            logger.info(f"Loading video: {video_path}")
+            video_clip = VideoFileClip(video_path)
 
             if end_sec > video_clip.duration:
                 logger.info(f"end_sec {end_sec} exceeds video duration {video_clip.duration}. Trimming to video end.")
@@ -44,8 +43,8 @@ if __name__ == '__main__':
     import logging
     import os
     from Config import Config
-    Config.load()
+    Config.init()
     logging.basicConfig(level=logging.INFO)
     
-    editor = VideoEditor("video/output.mp4")
-    editor.trim_and_add_audio(3, 20, "video/output2.mp4")
+    editor = VideoEditor()
+    editor.trim_and_add_audio("video/output.mp4", 3, 20, "video/output2.mp4")

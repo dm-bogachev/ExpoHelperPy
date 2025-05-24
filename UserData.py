@@ -13,7 +13,7 @@ class UserData(Base):
     company_name = Column(String)
     position = Column(String)
     user_interest = Column(String)
-    chat_id = Column(Integer, unique=True, nullable=False)
+    chat_id = Column(Integer, nullable=False)
     video_link = Column(String)
     is_subscribed = Column(Boolean, default=False)
     service_interest = Column(Boolean, default=False)

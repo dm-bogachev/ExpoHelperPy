@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 class RobotConnection:
     def __init__(self):
-        Config.load()
+        Config.init()
         self.__tcp_attempts = 0
         self.connected = False
 
@@ -43,10 +43,13 @@ class RobotConnection:
             self.handle_timeout()
         self.__tcp_attempts = 0
 
-    def receive(self):
+    def receive(self, no_request=False):
         try:
             response = self.connection.recv(1024)
         except socket.timeout:
+            if no_request:
+                logger.debug('No request to receive, skipping timeout handling')
+                return None
             self.handle_timeout()
             return None
         self.__tcp_attempts = 0

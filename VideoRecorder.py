@@ -14,7 +14,7 @@ logging.basicConfig(
 
 class VideoRecorder:
     def __init__(self):
-        Config.load()
+        Config.init()
         UserService.init()
 
         self.video_source = Config.get('camera_path')
@@ -27,13 +27,19 @@ class VideoRecorder:
 
         self.recording = False
         self.thread = None
+        self.camera_ready = threading.Event()  # Новое событие для синхронизации
     
     def start_recording(self, filename):
         self.filename = filename
         if not self.recording:
             self.recording = True
+            self.camera_ready.clear()  # Сброс события перед запуском потока
             self.thread = threading.Thread(target=self._record_video)
             self.thread.start()
+            
+            # Ждем, пока камера не будет проинициализирована (успешно или с ошибкой)
+            self.camera_ready.wait()  
+            
             logger.info("Video recording started.")
         else:
             logger.warning("Video recording is already in progress.")
@@ -50,6 +56,7 @@ class VideoRecorder:
         cap = cv2.VideoCapture(self.video_source)
         if not cap.isOpened():
             logger.error("Failed to open video source.")
+            self.camera_ready.set()  # Завершаем ожидание в start_recording
             return
 
         cap.set(cv2.CAP_PROP_FPS, self.fps)
@@ -61,15 +68,26 @@ class VideoRecorder:
         if not out.isOpened():
             logger.error("Failed to open video writer.")
             cap.release()
+            self.camera_ready.set()  # Завершаем ожидание в start_recording
             return
+
+        self.camera_ready.set()  # Камера успешно проинициализирована
+        frame_period = 1.0 / self.fps
+
         while self.recording:
+            start_time = time.time()
+
             ret, frame = cap.read()
             if not ret:
                 logger.error("Failed to read frame from video source.")
                 break
 
             out.write(frame)
-            time.sleep(1 / self.fps)
+
+            elapsed = time.time() - start_time
+            delay = frame_period - elapsed
+            if delay > 0:
+                time.sleep(delay)
 
         cap.release()
         out.release()

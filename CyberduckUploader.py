@@ -12,7 +12,7 @@ class CyberduckUploader:
         Initializes the uploader using provided parameters or falls back to configuration.
         The Config is loaded automatically.
         """
-        Config.load()
+        Config.init()
         self.profile = profile or f"./data/{Config.get('duck_profile')}"
         self.access_key = access_key or Config.get('duck_access_key')
         self.secret_key = secret_key or Config.get('duck_secret_access_key')

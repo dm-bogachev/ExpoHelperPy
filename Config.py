@@ -32,7 +32,7 @@ class Config:
     _config = {}
 
     @classmethod
-    def load(cls):
+    def init(cls):
         """Загружает конфигурацию из файла или создает с дефолтными значениями."""
         if not os.path.exists(cls._config_file):
             cls._config = cls._default_config.copy()
@@ -60,6 +60,6 @@ class Config:
 
 if __name__ == "__main__":
     # Пример использования
-    Config.load()
+    Config.init()
 
    
