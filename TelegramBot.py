@@ -9,7 +9,7 @@ from Config import Config
 # Настройка логирования (если ещё не настроена в основном модуле)
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO
+    level=logging.FATAL
 )
 
 class TelegramBot(threading.Thread):

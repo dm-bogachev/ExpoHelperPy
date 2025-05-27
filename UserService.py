@@ -84,6 +84,23 @@ class UserService:
                 logger.warning("User with chat_id %s not found. Update skipped.", chat_id)
 
     @classmethod
+    def update_user_by_id(cls, idd, **kwargs):
+        logger.info("Updating user with id: %s", idd)
+        with cls._Session() as session:
+            user = session.query(UserData).filter_by(id=idd).first()
+            if user:
+                for key, value in kwargs.items():
+                    if key.startswith("_"):  # пропускаем служебные поля
+                        continue
+                    if hasattr(user, key):
+                        logger.info("Updating field '%s' to '%s'", key, value)
+                        setattr(user, key, value)
+                session.commit()
+                logger.info("User updated successfully.")
+            else:
+                logger.warning("User with id %s not found. Update skipped.", idd)
+
+    @classmethod
     def update_user_from_userdata(cls, user_data):
         logger.info("Updating user from userdata with chat_id: %s", user_data.chat_id)
         with cls._Session() as session:
@@ -111,6 +128,19 @@ class UserService:
                 logger.info("User deleted successfully.")
             else:
                 logger.warning("User with chat_id %s not found. Delete skipped.", chat_id)
+
+    @classmethod
+    def delete_user_by_id(cls, idd):
+        logger.info("Deleting user with id: %s", idd)
+        with cls._Session() as session:
+            user = session.query(UserData).filter_by(id=idd).first()
+            if user:
+                session.delete(user)
+                session.commit()
+                logger.info("User deleted successfully.")
+            else:
+                logger.warning("User with id %s not found. Delete skipped.", chat_id)
+ 
 
     @classmethod
     def get_all_users(cls):

@@ -1,5 +1,4 @@
 import threading
-import time
 import tkinter as tk
 from tkinter import ttk, messagebox
 from CyberduckUploader import CyberduckUploader
@@ -9,8 +8,8 @@ from UserService import UserService
 from Config import Config
 from VideoEditor import VideoEditor
 from VideoRecorder import VideoRecorder
-import os
-import commands
+
+import qrcode
 import handlers
 import asyncio
 
@@ -33,7 +32,7 @@ class Window(tk.Tk):
 
         btn_frame = tk.Frame(self)
         btn_frame.pack(fill=tk.X, pady=5)
-        self.update_btn = tk.Button(btn_frame, text="Обновить выбранного", command=self.on_start_cinema_click)
+        self.update_btn = tk.Button(btn_frame, text="Свет! Камера! Мотор!", command=self.on_start_cinema_click)
         self.update_btn.pack(side=tk.LEFT, padx=5)
         self.__init_tree()
         try:
@@ -42,8 +41,16 @@ class Window(tk.Tk):
         except Exception as e:
             self.refresh_btn = tk.Button(btn_frame, text="Обновить список", command=self.refresh_data)
         self.refresh_btn.pack(side=tk.LEFT, padx=5)
+                # Кнопка для отображения QR кода
+        self.show_qr_btn = tk.Button(btn_frame, text="Показать QR код", command=self.show_qr_code)
+        self.show_qr_btn.pack(side=tk.LEFT, padx=5)
+        
         self.copy_link_btn = tk.Button(btn_frame, text="Скопировать публичную ссылку", command=self.copy_public_link)
         self.copy_link_btn.pack(side=tk.LEFT, padx=5)
+        # Кнопка для удаления выбранной записи
+        self.delete_record_btn = tk.Button(btn_frame, text="Удалить запись", command=self.delete_record)
+        self.delete_record_btn.pack(side=tk.LEFT, padx=5)
+
 
         self.__init_create_form()
 
@@ -141,7 +148,10 @@ class Window(tk.Tk):
         remote_path = self.s3.upload_file(f"video/{chat_id_str}_g.mp4", f"{chat_id_str}_g.mp4")
         if remote_path:
             public_link = self.s3.generate_public_link(f"{chat_id_str}_g.mp4")
-            UserService.update_user(chat_id, video_link=public_link)
+            if (chat_id == 0 or chat_id is None) and user:
+                UserService.update_user_by_id(user.id, video_link=public_link)
+            else:
+                UserService.update_user(chat_id, video_link=public_link)
             print(f"Public link: {public_link}")
         
         future = asyncio.run_coroutine_threadsafe(handlers.ask_to_subscribe(self.telegrambot.app, chat_id),
@@ -157,6 +167,7 @@ class Window(tk.Tk):
         pass
     def enable_refresh(self):
         self.refresh_allowed = True
+        self.refresh_data()
 
     #         public_link = uploader.generate_public_link(REMOTE_FILE)
     #         print(f"Public link: {public_link}")
@@ -233,6 +244,57 @@ class Window(tk.Tk):
         except Exception as e:
             messagebox.showerror("Ошибка", f"Не удалось добавить запись: {e}")
 
+    def delete_record(self):
+        selected = self.tree.selection()
+        if not selected:
+            messagebox.showwarning("Внимание", "Выберите запись для удаления")
+            return
+        confirm = messagebox.askyesno("Подтверждение", "Удалить выбранную запись?")
+        if not confirm:
+            return
+        values = self.tree.item(selected[0])["values"]
+        record_id = values[0]  # предполагается, что id находится в первом столбце
+        try:
+            UserService.delete_user_by_id(record_id)
+            messagebox.showinfo("Информация", "Запись удалена")
+            self.refresh_data()
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Не удалось удалить запись: {e}")
+
+    def show_qr_code(self):
+        selected = self.tree.selection()
+        if not selected:
+            messagebox.showwarning("Внимание", "Выберите пользователя для отображения QR кода")
+            return
+        
+        values = self.tree.item(selected[0])["values"]
+        if len(values) > 7 and values[7]:
+            video_link = values[7]
+        else:
+            messagebox.showwarning("Внимание", "У выбранного пользователя нет video_link")
+            return
+        
+        try:
+            
+            from PIL import Image, ImageTk
+        except ImportError:
+            messagebox.showerror("Ошибка", "Не установлены необходимые модули. Установите qrcode и Pillow.")
+            return
+        
+        # Генерация QR кода
+        qr = qrcode.make(video_link)
+        
+        # Создание модального окна для показа QR кода
+        qr_window = tk.Toplevel(self)
+        qr_window.title("QR код")
+        # Преобразование изображения в формат, используемый tkinter
+        qr_photo = ImageTk.PhotoImage(qr)
+        label = tk.Label(qr_window, image=qr_photo)
+        label.image = qr_photo  # предотвращает сборку мусора
+        label.pack(padx=10, pady=10)
+        close_btn = tk.Button(qr_window, text="Закрыть", command=qr_window.destroy)
+        close_btn.pack(pady=5)
+        
 if __name__ == "__main__":
     app = Window()
     app.mainloop()

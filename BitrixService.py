@@ -21,7 +21,7 @@ class BitrixService:
 
         lead = {
             "fields": {
-                "TITLE": f"{user.full_name} {user.company_name}",
+                "TITLE": f"{user.full_name} {user.company_name} (Лид с кинебота)",
                 "NAME": user.full_name,
                 "SECOND_NAME": "",
                 "LAST_NAME": "",

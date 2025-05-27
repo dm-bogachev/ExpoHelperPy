@@ -7,3 +7,5 @@ test.py
 *.db
 *.db2
 *.db
+*.pyd
+expo_helper.db
