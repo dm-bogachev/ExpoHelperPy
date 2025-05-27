@@ -93,6 +93,15 @@ class Robot(Thread):
             self._request_pending = False
             return None
 
+    def send_service(self):
+        logger.info("send_service command invoked.")
+        return self.__send_command('SERVICE', no_response=True)
+
+    def send_home(self):
+        logger.info("send_home command invoked.")
+        return self.__send_command('HOME', no_response=True)
+
+
     def send_start(self):
         logger.info("send_start command invoked.")
         return self.__send_command('START', no_response=True)

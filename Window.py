@@ -8,10 +8,14 @@ from UserService import UserService
 from Config import Config
 from VideoEditor import VideoEditor
 from VideoRecorder import VideoRecorder
-
+import logging
 import qrcode
 import handlers
 import asyncio
+
+logging.getLogger("httpcore.http11").setLevel(logging.CRITICAL)
+logging.getLogger("httpcore.connection").setLevel(logging.CRITICAL)
+
 
 class Window(tk.Tk):
     def __init_classes(self):
@@ -22,6 +26,12 @@ class Window(tk.Tk):
         self.recorder = VideoRecorder()
         self.editor = VideoEditor()
         self.s3 = CyberduckUploader()
+
+        # self.telegram_logger = logging.getLogger("telegram")
+        # self.telegram_logger.setLevel(logging.CRITICAL)
+        # self.telegram_logger.propagate = False
+        # for handler in self.telegram_logger.handlers[:]:
+        #     self.telegram_logger.removeHandler(handler)
 
         self.robot.start()
         self.telegrambot.start()
@@ -51,6 +61,13 @@ class Window(tk.Tk):
         self.delete_record_btn = tk.Button(btn_frame, text="Удалить запись", command=self.delete_record)
         self.delete_record_btn.pack(side=tk.LEFT, padx=5)
 
+        # Кнопка для удаления выбранной записи
+        self.service_pos = tk.Button(btn_frame, text="Сервисное положение", command=self.service_pos_f)
+        self.service_pos.pack(side=tk.LEFT, padx=5)
+
+                # Кнопка для удаления выбранной записи
+        self.start_pos = tk.Button(btn_frame, text="Домашнее положение", command=self.home_pos_f)
+        self.start_pos.pack(side=tk.LEFT, padx=5)
 
         self.__init_create_form()
 
@@ -123,6 +140,12 @@ class Window(tk.Tk):
         self.refresh_allowed = False
         threading.Thread(target=self.start_cinema, daemon=True).start()
 
+    def service_pos_f(self):
+        self.robot.send_service()
+
+    def home_pos_f(self):
+        self.robot.send_home()
+
     def start_cinema(self):
 
         selected = self.tree.selection()
@@ -132,9 +155,12 @@ class Window(tk.Tk):
         chat_id = self.tree.item(selected[0])["values"][1]
         if chat_id == 0:
             chat_id_str = self.tree.item(self.tree.selection()[0])["values"][2]
+            print(self.tree.item(selected[0])["values"][0])
+            user = UserService.get_user_by_id(self.tree.item(selected[0])["values"][0])
         else:
+            user = UserService.get_user_by_chat_id(chat_id)
             chat_id_str = chat_id
-        user = UserService.get_user_by_chat_id(chat_id)
+        
         self.recorder.start_recording(f"{chat_id_str}.mp4")
         self.robot.send_start()
         self.robot.wait_response(timeout=360)

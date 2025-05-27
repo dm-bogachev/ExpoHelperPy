@@ -12,6 +12,8 @@ logging.basicConfig(
     level=logging.FATAL
 )
 
+logging.getLogger("telegram").setLevel(logging.WARNING)
+
 class TelegramBot(threading.Thread):
     def __init__(self):
         super().__init__()

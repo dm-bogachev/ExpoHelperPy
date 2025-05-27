@@ -69,6 +69,17 @@ class UserService:
             return user
 
     @classmethod
+    def get_user_by_id(cls, id):
+        logger.info("Fetching user with id: %s", id)
+        with cls._Session() as session:
+            user = session.query(UserData).filter_by(id=id).first()
+            if user:
+                logger.info("User found: %s", user.full_name)
+            else:
+                logger.warning("User with id %s not found", id)
+            return user
+
+    @classmethod
     def update_user(cls, chat_id, **kwargs):
         logger.info("Updating user with chat_id: %s", chat_id)
         with cls._Session() as session:
