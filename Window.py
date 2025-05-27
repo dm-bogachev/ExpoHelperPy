@@ -69,7 +69,13 @@ class Window(tk.Tk):
         self.start_pos = tk.Button(btn_frame, text="Домашнее положение", command=self.home_pos_f)
         self.start_pos.pack(side=tk.LEFT, padx=5)
 
+        self.status = tk.Label(btn_frame, height=1, width=50)
+        self.status.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
+
         self.__init_create_form()
+
+    def update_status(self, status):
+        self.status.config(text=status)
 
     def __init_tree(self):
         self.tree_columns = ("id", "chat_id", "full_name", "phone_number", "email", "company_name", "position", "video_link")
@@ -160,17 +166,18 @@ class Window(tk.Tk):
         else:
             user = UserService.get_user_by_chat_id(chat_id)
             chat_id_str = chat_id
-        
+        self.after(0, self.update_status("Снимаем видео"))
         self.recorder.start_recording(f"{chat_id_str}.mp4")
         self.robot.send_start()
         self.robot.wait_response(timeout=360)
         self.recorder.stop_recording()
-
+        self.after(0, self.update_status("Обрабатываем видео"))
         self.editor.trim_and_add_audio(f"video/{chat_id_str}.mp4",
                                        Config.get("cut_AB")[0], 
                                        Config.get("cut_AB")[1], 
                                        f"video/{chat_id_str}_g.mp4")
 
+        self.after(0, self.update_status("Загружаем видео"))
         remote_path = self.s3.upload_file(f"video/{chat_id_str}_g.mp4", f"{chat_id_str}_g.mp4")
         if remote_path:
             public_link = self.s3.generate_public_link(f"{chat_id_str}_g.mp4")
@@ -179,15 +186,17 @@ class Window(tk.Tk):
             else:
                 UserService.update_user(chat_id, video_link=public_link)
             print(f"Public link: {public_link}")
-        
+        self.after(0, self.update_status("Отправляем видео"))
         future = asyncio.run_coroutine_threadsafe(handlers.ask_to_subscribe(self.telegrambot.app, chat_id),
                                                      self.telegrambot.loop)
         try:
             result = future.result(timeout=5)
         except Exception as e:
             print(f"Ошибка при выполнении ask_to_subscribe: {e}")
-
+        self.after(0, self.update_status("Готово"))
         self.after(0, lambda: self.refresh_btn.config(state=tk.NORMAL))
+        self.after(0, lambda: self.update_btn.config(state=tk.NORMAL))
+        
         self.after(0, self.enable_refresh)
 
         pass
