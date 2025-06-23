@@ -1,11 +1,7 @@
-*.pyc
-*.mp4
-*.json
-*.mp3
-test.py
 .venv/*
-*.db
-*.db2
-*.db
-*.pyd
-expo_helper.db
+**/local/** 
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+shared_data/**/*
+.vscode/**/*
