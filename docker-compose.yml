@@ -1,0 +1,72 @@
+version: "3.9"
+
+services:
+  expo-db:
+    container_name: expo-db
+    build:
+      context: ./database
+    ports:
+      - "8000:8000"
+    volumes:
+      - shared_data:/shared_data
+    environment:
+      - DOCKER=1
+    networks:
+      - exponetwork
+    restart: unless-stopped
+
+  expo-tg:
+    container_name: expo-tg
+    build:
+      context: ./telegram-bot
+    ports:
+      - "5000:5000"
+    volumes:
+      - shared_data:/shared_data
+    environment:
+      - DOCKER=1
+    networks:
+      - exponetwork
+    restart: unless-stopped
+    depends_on:
+      - nginx
+
+  expo-process:
+    container_name: expo-process
+    build:
+      context: ./processor
+    ports:
+      - "5001:5000"
+    volumes:
+      - shared_data:/shared_data
+    environment:
+      - DOCKER=1
+    networks:
+      - exponetwork
+    restart: unless-stopped
+    depends_on:
+      - nginx
+
+  nginx:
+    image: nginx:latest
+    container_name: expo-nginx
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+    networks:
+      - exponetwork
+    depends_on:
+      - expo-db
+    restart: unless-stopped
+
+volumes:
+  shared_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./shared_data
+      o: bind
+
+networks:
+  exponetwork:

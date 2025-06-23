@@ -1,0 +1,7 @@
+.venv/*
+**/local/** 
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+shared_data/**/*
+.vscode/**/*
