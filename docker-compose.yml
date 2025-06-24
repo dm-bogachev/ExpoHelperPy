@@ -1,6 +1,24 @@
 version: "3.9"
 
 services:
+
+  expo-robot:
+    container_name: expo-robot
+    build:
+      context: ./robot
+    ports:
+      - "8002:8002"
+      - "9001:9001"
+    volumes:
+      - shared_data:/shared_data
+    environment:
+      - DOCKER=1
+    networks:
+      - exponetwork
+    restart: unless-stopped
+    depends_on:
+      - nginx
+
   expo-db:
     container_name: expo-db
     build:
@@ -56,6 +74,12 @@ services:
     restart: unless-stopped
     depends_on:
       - nginx
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
 
   expo-link-sender:
     container_name: expo-link-sender
@@ -81,6 +105,22 @@ services:
       - DOCKER=1
     networks:
       - exponetwork
+    restart: unless-stopped
+    depends_on:
+      - nginx
+
+  expo-recorder:
+    container_name: expo-recorder
+    build:
+      context: ./recorder
+    volumes:
+      - shared_data:/shared_data
+    environment:
+      - DOCKER=1
+    networks:
+      - exponetwork
+    ports:
+      - "8001:8001"
     restart: unless-stopped
     depends_on:
       - nginx

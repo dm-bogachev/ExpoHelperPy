@@ -48,6 +48,16 @@
                     style="max-width:100%; height:auto; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.08); background:#000;"
                     alt="Камера"
                 >
+                <!-- Настройки под видео -->
+                <div class="w-100 mt-4">
+                    <h5 class="text-center mb-3">Настройки</h5>
+                    <form id="settingsForm" class="d-flex flex-column align-items-center">
+                        <div class="mb-3 w-100">
+                            <label for="recordDuration" class="form-label">Время записи (сек):</label>
+                            <input type="number" id="recordDuration" name="recordDuration" class="form-control" min="0" step="1" value="10" required>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -73,6 +83,11 @@
 </body>
 <footer>
     <p>© 2025 Robowizard Co. Ltd.</p>
+    <div class="mt-2 small">
+        <a href="/api/database/docs" target="_blank" class="me-3">Database API docs</a>
+        <a href="/api/recorder/docs" target="_blank" class="me-3">Recorder API docs</a>
+        <a href="/api/robot/docs" target="_blank">Robot API docs</a>
+    </div>
 </footer>
 
 </html>

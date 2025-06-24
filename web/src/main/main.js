@@ -1,7 +1,13 @@
-const API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-    ? "http://127.0.0.1/api/database"
-    : "http://expo-db:8000/api/database";
+// const API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+//     ? "http://127.0.0.1/api/database"
+//     : "http://expo-db:8000/api/database";
 
+// const RECORDER_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+//     ? "http://127.0.0.1/api/recorder"
+//     : "http://expo-recorder:8001/api/recorder";
+const host = window.location.hostname;
+const RECORDER_URL = `http://${host}:8001/api/recorder`;
+const API_URL = `http://${host}:8000/api/database`;
 // Значки для статусов
 const statusIcons = {
     "-1": '<i class="fas fa-file-alt text-secondary" title="Создано"></i>',
@@ -10,7 +16,9 @@ const statusIcons = {
     "2": '<i class="fas fa-cogs text-warning" title="Обрабатывается"></i>',
     "3": '<i class="fas fa-upload text-purple" style="color:#6610f2" title="Загружено"></i>',
     "4": '<i class="fas fa-hourglass-half text-success" title="Ожидание подписки"></i>',
-    "5": '<i class="fas fa-paper-plane text-success" title="Отправлено"></i>'
+    "5": '<i class="fas fa-paper-plane text-success" title="Отправлено"></i>',
+    "10": '<i class="fas fa-video text-danger" title="Запись видео!"></i>'
+
 };
 
 function statusToText(status) {
@@ -21,7 +29,8 @@ function statusToText(status) {
         "2": "Видео обработано",
         "3": "Видео загружено",
         "4": "Ожидание подписки",
-        "5": "Видео отправлено пользователю"
+        "5": "Видео отправлено пользователю",
+        "10": "Запись видео!"
     };
     return statusList[String(status)] ?? status;
 }
@@ -42,6 +51,7 @@ function statusToRowClass(status) {
             return "status-waitsubscription";
         case "5":
             return "status-sent";
+        case "10":
         default:
             return "";
     }
@@ -50,6 +60,13 @@ function statusToRowClass(status) {
 function renderUsers(users) {
     const tbody = document.querySelector('#usersTable tbody');
     tbody.innerHTML = "";
+    // Получаем значение времени записи из поля настроек
+    const durationInput = document.getElementById('recordDuration');
+    let recordDuration = 10;
+    if (durationInput && durationInput.value !== "") {
+        recordDuration = Math.max(0, parseInt(durationInput.value, 10) || 10);
+    }
+
     users.slice().reverse().forEach(user => {
         const showMotor = Number(user.status) <= 1; // Показывать только если статус -1, 0 или 1
         const tr = document.createElement('tr');
@@ -87,11 +104,27 @@ function renderUsers(users) {
     document.querySelectorAll('.action-btn').forEach(btn => {
         btn.onclick = function(e) {
             e.stopPropagation();
-            fetch(`${API_URL}/users/${this.dataset.userId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 1 })
-            }).then(fetchAndRenderUsers);
+
+            // Используем актуальное значение времени записи
+            const durationInput = document.getElementById('recordDuration');
+            let recordDuration = 10;
+            if (durationInput && durationInput.value !== "") {
+                recordDuration = Math.max(0, parseInt(durationInput.value, 10) || 10);
+            }
+
+            fetch(`${RECORDER_URL}/start?user_id=${this.dataset.userId}&duration=${recordDuration}`, {
+                method: 'POST',
+                headers: { 'accept': 'application/json' },
+                body: ''
+            }).then(response => {
+                if (!response.ok) {
+                    alert('Ошибка запуска съёмки');
+                } else {
+                    alert(`Съёмка запущена на ${recordDuration} секунд`);
+                    startCountdown(recordDuration); // ← запуск таймера
+                    fetchAndRenderUsers();
+                }
+            });
         };
     });
 
@@ -126,7 +159,8 @@ function openUserModal(user) {
         { value: 2, text: "Видео обработано" },
         { value: 3, text: "Видео загружено" },
         { value: 4, text: "Ожидание подписки" },
-        { value: 5, text: "Видео отправлено пользователю" }
+        { value: 5, text: "Видео отправлено пользователю" },
+        { value: 10, text: "Запись видео!" }
     ];
     const statusButtons = statusOptions.map(opt => `
         <button class="btn btn-sm ${String(opt.value) === String(user.status) ? 'btn-primary' : 'btn-outline-primary'} status-btn" 
@@ -173,3 +207,43 @@ async function fetchAndRenderUsers() {
 
 fetchAndRenderUsers();
 setInterval(fetchAndRenderUsers, 1000);
+
+document.addEventListener("DOMContentLoaded", () => {
+    const img = document.querySelector('img[alt="Камера"]');
+    if (img) {
+        img.src = `http://${host}:3000/camera/mjpeg`;
+    }
+    // Добавим элемент для таймера, если его нет
+    const settingsDiv = document.querySelector('.w-100.mt-4');
+    if (settingsDiv && !document.getElementById('countdownTimer')) {
+        const timerDiv = document.createElement('div');
+        timerDiv.id = 'countdownTimer';
+        timerDiv.className = 'text-center my-2 fs-4 fw-bold text-primary';
+        settingsDiv.appendChild(timerDiv);
+    }
+});
+
+// Добавим глобальную переменную для таймера
+let countdownInterval = null;
+
+// Функция запуска обратного отсчёта
+function startCountdown(seconds) {
+    clearInterval(countdownInterval);
+    const timerDiv = document.getElementById('countdownTimer');
+    if (!timerDiv) return;
+    let remaining = seconds;
+    if (remaining <= 0) {
+        timerDiv.textContent = '';
+        return;
+    }
+    timerDiv.textContent = `Осталось: ${remaining} сек.`;
+    countdownInterval = setInterval(() => {
+        remaining--;
+        if (remaining > 0) {
+            timerDiv.textContent = `Осталось: ${remaining} сек.`;
+        } else {
+            timerDiv.textContent = '';
+            clearInterval(countdownInterval);
+        }
+    }, 1000);
+}

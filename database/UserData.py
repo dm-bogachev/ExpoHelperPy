@@ -11,6 +11,7 @@ status_list = {
     3: "Uploaded",
     4: "WaitSubscription",
     5: "Sent",
+    10: "Recording",
 }
 
 Base = declarative_base()

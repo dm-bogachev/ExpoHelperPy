@@ -13,9 +13,9 @@ logging.basicConfig(
 )
 
 if os.environ.get("DOCKER"):
-    shared_data_path = "/shared_data/videos"
+    shared_data_path = "/shared_data/videos/output"
 else:
-    shared_data_path = "./shared_data/videos"
+    shared_data_path = "./shared_data/videos/output"
 os.makedirs(shared_data_path, exist_ok=True)
 
 
