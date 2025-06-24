@@ -26,19 +26,19 @@ class UserData(Base):
     
 
 class UserBase(BaseModel):
-    chat_id: int
+    chat_id: Optional[int] = None
     name: Optional[str] = None
     status: Optional[int] = -1
     video_link: Optional[str] = None
 
 class UserCreate(UserBase):
-    chat_id: int
+    chat_id: Optional[int] = None
     name: Optional[str] = None
     status: Optional[int] = -1
     video_link: Optional[str] = None
 
 class UserUpdate(BaseModel):
-    chat_id: int
+    chat_id: Optional[int] = None
     name: Optional[str] = None
     status: Optional[int] = None
     video_link: Optional[str] = None

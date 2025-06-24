@@ -38,80 +38,80 @@ class UserService:
 
     @classmethod
     def get_all_users(cls):
-        logger.info("Fetching all users from the database.")
+        logger.debug("Fetching all users from the database.")
         with cls._Session() as session:
             users = session.query(UserData).all()
-            logger.info("Fetched %d users", len(users))
+            logger.debug("Fetched %d users", len(users))
             return users
 
     @classmethod
     def get_user(cls, id):
-        logger.info("Fetching user with id: %s", id)
+        logger.debug("Fetching user with id: %s", id)
         with cls._Session() as session:
             user = session.query(UserData).filter_by(id=id).first()
             if user:
-                logger.info("User found: %s", user.name)
+                logger.debug("User found: %s", user.name)
             else:
                 logger.warning("User with id %s not found", id)
             return user
         
     @classmethod
     def get_users_by_chat_id(cls, chat_id):
-        logger.info("Fetching user with chat_id: %s", chat_id)
+        logger.debug("Fetching user with chat_id: %s", chat_id)
         with cls._Session() as session:
             users = session.query(UserData).filter_by(chat_id=chat_id).all()
             if users:
-                logger.info("found %d users with chat_id %s", len(users), chat_id)
+                logger.debug("Found %d users with chat_id %s", len(users), chat_id)
             else:
                 logger.warning("User with chat_id %s not found", chat_id)
             return users
 
     @classmethod
     def get_users_by_status(cls, status):
-        logger.info("Fetching users with status: %s", status)
+        logger.debug("Fetching users with status: %s", status)
         with cls._Session() as session:
             users = session.query(UserData).filter_by(status=status).all()
             if users:
-                logger.info("Found %d users with status %s", len(users), status)
+                logger.debug("Found %d users with status %s", len(users), status)
             else:
                 logger.warning("No users found with status %s", status)
             return users
         
     @classmethod
     def add_user(cls, **kwargs):
-        logger.info("Adding new user with chat_id: %s", kwargs.get("chat_id"))
+        logger.debug("Adding new user with chat_id: %s", kwargs.get("chat_id"))
         with cls._Session() as session:
             user = UserData(**kwargs)
             session.add(user)
             session.commit()
-            logger.info("User added successfully.")
+            logger.debug("User added successfully.")
 
     @classmethod
     def update_user(cls, idd, **kwargs):
-        logger.info("Updating user with id: %s", idd)
+        logger.debug("Updating user with id: %s", idd)
         with cls._Session() as session:
             user = session.query(UserData).filter_by(id=idd).first()
             if user:
                 for key, value in kwargs.items():
                     if key.startswith("_"):
                         continue
-                    if hasattr(user, key):
-                        logger.info("Updating field '%s' to '%s'", key, value)
+                    if hasattr(user, key) and value is not None:
+                        logger.debug("Updating field '%s' to '%s'", key, value)
                         setattr(user, key, value)
                 session.commit()
-                logger.info("User updated successfully.")
+                logger.debug("User updated successfully.")
             else:
                 logger.warning("User with id %s not found. Update skipped.", idd)
 
     @classmethod
     def delete_user(cls, idd):
-        logger.info("Deleting user with id: %s", idd)
+        logger.debug("Deleting user with id: %s", idd)
         with cls._Session() as session:
             user = session.query(UserData).filter_by(id=idd).first()
             if user:
                 session.delete(user)
                 session.commit()
-                logger.info("User deleted successfully.")
+                logger.debug("User deleted successfully.")
             else:
                 logger.warning("User with id %s not found. Delete skipped.", idd)
 

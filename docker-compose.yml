@@ -19,8 +19,20 @@ services:
     container_name: expo-tg
     build:
       context: ./telegram-bot
-    ports:
-      - "5000:5000"
+    volumes:
+      - shared_data:/shared_data
+    environment:
+      - DOCKER=1
+    networks:
+      - exponetwork
+    restart: unless-stopped
+    depends_on:
+      - nginx
+
+  expo-s3:
+    container_name: expo-s3
+    build:
+      context: ./s3-file-loader
     volumes:
       - shared_data:/shared_data
     environment:
@@ -35,8 +47,34 @@ services:
     container_name: expo-process
     build:
       context: ./processor
-    ports:
-      - "5001:5000"
+    volumes:
+      - shared_data:/shared_data
+    environment:
+      - DOCKER=1
+    networks:
+      - exponetwork
+    restart: unless-stopped
+    depends_on:
+      - nginx
+
+  expo-link-sender:
+    container_name: expo-link-sender
+    build:
+      context: ./link-sender
+    volumes:
+      - shared_data:/shared_data
+    environment:
+      - DOCKER=1
+    networks:
+      - exponetwork
+    restart: unless-stopped
+    depends_on:
+      - nginx
+
+  expo-web:
+    container_name: expo-web
+    build:
+      context: ./web
     volumes:
       - shared_data:/shared_data
     environment:

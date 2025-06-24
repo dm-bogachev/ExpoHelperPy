@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Список пользователей</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/main/main.css">
+    <style>
+
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid px-4">
+        <div class="row">
+            <!-- Таблица слева -->
+            <div class="col-lg-8 col-md-7 col-12 mb-4">
+                <h1 class="text-center my-4">Список пользователей</h1>
+                <div class="table-responsive">
+                    <table id="usersTable" class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Имя</th>
+                                <th>Chat ID</th>
+                                <th>Статус</th>
+                                <th>Видео</th>
+                                <th>Действие</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Пользователи будут добавлены здесь через JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Видео справа -->
+            <div class="col-lg-4 col-md-5 col-12 mb-4 d-flex flex-column align-items-center">
+                <h1 class="text-center my-4">Видеопоток</h1>
+                <img 
+                    src="http://127.0.0.1:3000/camera/mjpeg"
+                    class="img-fluid"
+                    style="max-width:100%; height:auto; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.08); background:#000;"
+                    alt="Камера"
+                >
+            </div>
+        </div>
+    </div>
+    <!-- Модальное окно для информации о пользователе -->
+    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="userModalLabel">Информация о пользователе</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          </div>
+          <div class="modal-body">
+            <div id="userInfo"></div>
+            <div class="mt-3">
+              <div id="statusButtons" class="d-flex flex-wrap gap-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/main/main.js"></script>
+</body>
+<footer>
+    <p>© 2025 Robowizard Co. Ltd.</p>
+</footer>
+
+</html>
