@@ -31,10 +31,14 @@ async def main():
             logger.info("Scanning for users with status 3 (Uploaded)")
             users_with_status_3 = get_users_by_status(3)
             if users_with_status_3:
+                Config.init()
                 logger.debug(f"Found {len(users_with_status_3)} users with status 3.")
                 for user in users_with_status_3:
                     logger.debug(f"Processing user {user['id']} ({user['name']}) with chat_id {user['chat_id']}.")
                     chat_id = user["chat_id"]
+                    if chat_id == 0:
+                        update_user(user["id"], {"status": 5}) 
+                        continue
                     video_link = user["video_link"]
                     if video_link:
                         logger.info(f"Sending video link to user {user['id']} ({user['name']}) in chat {chat_id}: {video_link}")

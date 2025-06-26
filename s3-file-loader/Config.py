@@ -2,7 +2,7 @@ import json
 import os
 
 if os.environ.get("DOCKER"):
-    config_path = "/shared_data/s3.json"
+    config_path = "/shared_data/configs/s3.json"
 else:
     config_path = os.path.join(os.path.dirname(__file__), 'local', "s3.json")
 os.makedirs(os.path.dirname(config_path), exist_ok=True)

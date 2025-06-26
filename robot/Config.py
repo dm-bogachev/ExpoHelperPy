@@ -2,7 +2,7 @@ import json
 import os
 
 if os.environ.get("DOCKER"):
-    config_path = "/shared_data/robot.json"
+    config_path = "/shared_data/configs/robot.json"
 else:
     config_path = os.path.join(os.path.dirname(__file__), 'local', "robot.json")
 os.makedirs(os.path.dirname(config_path), exist_ok=True)

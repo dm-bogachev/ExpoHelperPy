@@ -2,7 +2,7 @@ import json
 import os
 
 if os.environ.get("DOCKER"):
-    config_path = "/shared_data/tg.json"
+    config_path = "/shared_data/configs/tg.json"
 else:
     config_path = os.path.join(os.path.dirname(__file__), 'local', "tg.json")
 os.makedirs(os.path.dirname(config_path), exist_ok=True)

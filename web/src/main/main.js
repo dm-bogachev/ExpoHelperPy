@@ -2,6 +2,7 @@ const host = window.location.hostname;
 const RECORDER_URL = `http://${host}/api/recorder`;
 const API_URL = `http://${host}/api/database`;
 const ROBOT_URL = `http://${host}/api/robot`;
+const SETTINGS_URL = `http://${host}/api/settings`;
 
 
 
@@ -67,7 +68,7 @@ function renderUsers(users) {
     }
 
     users.slice().reverse().forEach(user => {
-        const showMotor = Number(user.status) <= 1; // Показывать только если статус -1, 0 или 1
+        const showMotor = Number(user.status) == 0; // Показывать только если статус -1, 0 или 1
         const tr = document.createElement('tr');
         tr.className = statusToRowClass(user.status);
 
@@ -76,37 +77,46 @@ function renderUsers(users) {
             <td>${user.name ?? ""}</td>
             <td>${user.chat_id}</td>
             <td>
-                ${statuses[String(user.status)]?.icon ?? ''} 
-                <span class="ms-2">${statusToText(user.status)}</span>
+            ${statuses[String(user.status)]?.icon ?? ''} 
+            <span class="ms-2">${statusToText(user.status)}</span>
             </td>
             <td>
-                ${user.video_link ? `
-                    <div>
-                        <input type="text" class="form-control form-control-sm mb-2" value="${user.video_link}" readonly style="font-size:0.95em;">
-                        <button class="btn btn-outline-primary btn-sm w-100 gen-qr-btn" data-link="${encodeURIComponent(user.video_link)}" type="button">
-                            <i class="fas fa-qrcode"></i> Сгенерировать QR код
-                        </button>
-                        <div class="qr-container mt-2"></div>
-                    </div>
-                ` : ""}
+            ${user.video_link ? `
+                <div>
+                <button class="btn btn-outline-primary btn-sm w-100 gen-qr-btn" data-link="${encodeURIComponent(user.video_link)}" type="button">
+                    <i class="fas fa-qrcode"></i> Сгенерировать QR код
+                </button>
+                <div>
+                    <a href="${user.video_link}" target="_blank" style="font-size:0.95em;">
+                    ${user.video_link.substring(user.video_link.lastIndexOf('/') + 1)}
+                    </a>
+                </div>
+                <div class="qr-container mt-2"></div>
+                </div>
+            ` : ""}
             </td>
             <td>
-                ${showMotor ? `
-                <button class="btn btn-primary btn-sm action-btn me-2" data-user-id="${user.id}">
-                    <i class="fas fa-redo"></i> Мотор!
-                </button>
-                ` : ""}
-                <button class="btn btn-danger btn-sm delete-btn" data-user-id="${user.id}">
-                    <i class="fas fa-trash"></i>
-                </button>
+            ${showMotor ? `
+            <button class="btn btn-primary btn-sm action-btn me-2" data-user-id="${user.id}">
+                <i class="fas fa-redo"></i> Мотор!
+            </button>
+            ` : ""}
+            <button class="btn btn-danger btn-sm delete-btn" data-user-id="${user.id}">
+                <i class="fas fa-trash"></i>
+            </button>
             </td>
         `;
-        // Открытие модалки по клику на строку
+        // Открытие модалки только по клику на область статуса
         tr.style.cursor = "pointer";
-        tr.onclick = (e) => {
-            if (e.target.closest('.delete-btn') || e.target.closest('.action-btn')) return;
+        // Найдём ячейку статуса (4-я по счёту, индексация с 0)
+        const statusCell = tr.children[3];
+        if (statusCell) {
+            statusCell.style.cursor = "pointer";
+            statusCell.onclick = (e) => {
             openRecordModal(user);
-        };
+            e.stopPropagation();
+            };
+        }
         tbody.appendChild(tr);
     });
 
@@ -145,6 +155,52 @@ function renderUsers(users) {
                     method: 'DELETE'
                 }).then(fetchAndRenderUsers);
             }
+        };
+    });
+    tbody.querySelectorAll('.gen-qr-btn').forEach(btn => {
+        btn.onclick = function(e) {
+            e.stopPropagation();
+            const link = decodeURIComponent(this.dataset.link);
+            // Создаём простую модалку для QR
+            let modal = document.getElementById('qrSimpleModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'qrSimpleModal';
+                modal.style.position = 'fixed';
+                modal.style.top = '0';
+                modal.style.left = '0';
+                modal.style.width = '100vw';
+                modal.style.height = '100vh';
+                modal.style.background = 'rgba(0,0,0,0.5)';
+                modal.style.display = 'flex';
+                modal.style.alignItems = 'center';
+                modal.style.justifyContent = 'center';
+                modal.style.zIndex = '9999';
+                modal.innerHTML = `
+                    <div style="background:#fff;padding:24px 24px 12px 24px;border-radius:12px;box-shadow:0 2px 16px #0003;text-align:center;position:relative;">
+                        <img id="qrSimpleImg" style="max-width:200px;max-height:200px;display:block;margin:0 auto 12px auto;">
+                        <div style="word-break:break-all;font-size:0.95em;">
+                            <a id="qrSimpleLink" href="#" target="_blank"></a>
+                        </div>
+                        <button id="qrSimpleClose" style="position:absolute;top:8px;right:8px;border:none;background:transparent;font-size:1.5em;line-height:1;cursor:pointer;">×</button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                modal.querySelector('#qrSimpleClose').onclick = () => {
+                    modal.style.display = 'none';
+                };
+                modal.onclick = (ev) => {
+                    if (ev.target === modal) modal.style.display = 'none';
+                };
+            }
+            const qrImg = modal.querySelector('#qrSimpleImg');
+            const qrLink = modal.querySelector('#qrSimpleLink');
+            if (qrImg && qrLink) {
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}`;
+                qrLink.href = link;
+                qrLink.textContent = link;
+            }
+            modal.style.display = 'flex';
         };
     });
 }
@@ -225,12 +281,20 @@ async function checkRobotStatus() {
 
 // Проверяем статус робота при загрузке и далее каждую секунду
 checkRobotStatus();
-setInterval(checkRobotStatus, 1000);
+setInterval(checkRobotStatus, 2000);
 
 fetchAndRenderUsers();
-setInterval(fetchAndRenderUsers, 1000);
+setInterval(fetchAndRenderUsers, 5000);
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Заменяем ссылки в футере на реальные пути
+    const footerLinks = document.querySelectorAll('footer a');
+    if (footerLinks.length >= 3) {
+        footerLinks[0].href = `http://${host}/api/database/docs`;
+        footerLinks[1].href =`http://${host}/api/recorder/docs`;
+        footerLinks[2].href = `http://${host}/api/robot/docs`;
+    }
+
     const img = document.querySelector('img[alt="Камера"]');
     if (img) {
         img.src = `http://${host}:3000/camera/mjpeg`;
@@ -256,6 +320,31 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.setItem('recordDuration', durationInput.value);
         });
     }
+
+    // Обработчик добавления пользователя
+    const addUserForm = document.getElementById('addUserForm');
+    if (addUserForm) {
+        addUserForm.onsubmit = function(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('addUserName');
+            const name = nameInput.value.trim();
+            if (!name) return;
+            fetch(`${API_URL}/users`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, chat_id: 0, status: 0 })
+            }).then(resp => {
+                if (resp.ok) {
+                    nameInput.value = '';
+                    fetchAndRenderUsers();
+                } else {
+                    alert('Ошибка добавления пользователя');
+                }
+            });
+        };
+    }
+
+    loadJsonSettings();
 });
 
 // Добавим глобальную переменную для таймера
@@ -282,4 +371,54 @@ function startCountdown(seconds) {
             clearInterval(countdownInterval);
         }
     }, 1000);
+}
+
+async function loadJsonSettings() {
+    const container = document.getElementById('jsonSettings');
+    container.innerHTML = '<div class="text-muted">Загрузка настроек...</div>';
+    // Получаем список файлов
+    const resp = await fetch(`${SETTINGS_URL}/configs`);
+    const files = await resp.json();
+    container.innerHTML = '';
+    for (const fname of files) {
+        // Для каждого файла делаем отдельный запрос за содержимым
+        let content = {};
+        try {
+            const fileResp = await fetch(`${SETTINGS_URL}/configs/${fname}`);
+            content = await fileResp.json();
+        } catch (e) {
+            content = { error: "Ошибка загрузки содержимого" };
+        }
+        const group = document.createElement('div');
+        group.className = 'mb-3';
+        group.innerHTML = `
+            <label class="form-label fw-bold">${fname}</label>
+            <textarea class="form-control font-monospace" rows="6" style="font-size:0.95em;" id="json-edit-${fname}">${JSON.stringify(content, null, 2)}</textarea>
+            <button class="btn btn-primary btn-sm mt-2" data-fname="${fname}">Сохранить</button>
+            <div class="json-save-status mt-1 small"></div>
+        `;
+        container.appendChild(group);
+
+        group.querySelector('button').onclick = async function() {
+            const text = group.querySelector('textarea').value;
+            try {
+                const json = JSON.parse(text);
+                const resp = await fetch(`${SETTINGS_URL}/configs/${fname}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(json)
+                });
+                if (resp.ok) {
+                    group.querySelector('.json-save-status').textContent = "Сохранено!";
+                    group.querySelector('.json-save-status').style.color = "green";
+                } else {
+                    group.querySelector('.json-save-status').textContent = "Ошибка сохранения";
+                    group.querySelector('.json-save-status').style.color = "red";
+                }
+            } catch (e) {
+                group.querySelector('.json-save-status').textContent = "Ошибка: " + e;
+                group.querySelector('.json-save-status').style.color = "red";
+            }
+        };
+    }
 }

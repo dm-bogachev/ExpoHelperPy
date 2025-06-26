@@ -2,7 +2,7 @@ import json
 import os
 
 if os.environ.get("DOCKER"):
-    config_path = "/shared_data/recorder.json"
+    config_path = "/shared_data/configs/recorder.json"
 else:
     config_path = os.path.join(os.path.dirname(__file__), 'local', "recorder.json")
 os.makedirs(os.path.dirname(config_path), exist_ok=True)

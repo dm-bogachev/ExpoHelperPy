@@ -21,6 +21,13 @@
             <!-- Таблица слева -->
             <div class="col-lg-8 col-md-7 col-12 mb-4">
                 <h1 class="text-center my-4">Список пользователей</h1>
+                <!-- Форма добавления пользователя -->
+                <form id="addUserForm" class="mb-3 d-flex flex-wrap gap-2 align-items-center">
+                    <input type="text" id="addUserName" class="form-control" placeholder="Имя пользователя" required style="max-width:200px;">
+                    <button type="submit" class="btn btn-success">Добавить пользователя</button>
+                </form>
+
+
                 <div class="table-responsive">
                     <table id="usersTable" class="table table-hover align-middle mb-0">
                         <thead class="table-dark">
@@ -50,18 +57,20 @@
                 >
                 <!-- Настройки под видео -->
                 <div class="w-100 mt-4">
-                    <h1 class="text-center mb-3">Настройки</h1>
+                    <div id="countdownTimer" class="text-center my-2 fs-4 fw-bold text-primary"></div>
                     <div class="d-flex align-items-center mb-3">
                         <span class="me-2">Связь с роботом</span>
                         <span id="robotStatusLight" style="width:18px; height:18px; border-radius:50%; display:inline-block; background:#ccc; border:1px solid #888;"></span>
                     </div>
+                    <h1 class="text-center mb-3">Настройки</h1>
+                    
                     <form id="settingsForm" class="d-flex flex-column align-items-center">
                         <div class="mb-3 w-100">
                             <label for="recordDuration" class="form-label">Время записи (сек):</label>
                             <input type="number" id="recordDuration" name="recordDuration" class="form-control" min="0" step="1" value="10" required>
                         </div>
                     </form>
-                    <div id="countdownTimer" class="text-center my-2 fs-4 fw-bold text-primary"></div>
+                    <div id="jsonSettings" class="mt-4"></div>
                 </div>
             </div>
         </div>
@@ -90,9 +99,9 @@
 <footer>
     <p>© 2025 Robowizard Co. Ltd.</p>
     <div class="mt-2 small">
-        <a href="/api/database/docs" target="_blank" class="me-3">Database API docs</a>
-        <a href="/api/recorder/docs" target="_blank" class="me-3">Recorder API docs</a>
-        <a href="/api/robot/docs" target="_blank">Robot API docs</a>
+        <a href="fill" target="_blank" class="me-3">Database API docs</a>
+        <a href="fill" target="_blank" class="me-3">Recorder API docs</a>
+        <a href="fill" target="_blank">Robot API docs</a>
     </div>
 </footer>
 

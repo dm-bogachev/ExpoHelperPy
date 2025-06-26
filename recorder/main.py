@@ -68,8 +68,10 @@ recording_thread = None
 stop_flag = False
 
 import signal
+from datetime import datetime
 
 def record_video(user_id, duration=None):
+    Config.init()
     global recording_process, stop_flag
     user = get_user(user_id)
     logger.debug(f"Retrieved user data: {user}")
@@ -77,15 +79,18 @@ def record_video(user_id, duration=None):
         logger.error(f"User {user_id} not found")
         return
     chat_id = user.get("chat_id")
-    if not chat_id:
+    if not chat_id and chat_id != 0:
         logger.error(f"Chat ID not found for user {user_id}")
         return
     update_user(user_id, {"status": 10})
-    output_name = f"{shared_data_path}/{user['id']}_video_{chat_id}.mp4"
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_name = f"{shared_data_path}/{user['id']}_video_{chat_id}_{timestamp}.mp4"
+    logger.debug(f"Output file name: {output_name}")
     if duration:
         cmd = FFMPEG_CMD_TEMPLATE[:-2] + [str(duration), output_name]
     else:
         cmd = FFMPEG_CMD_TEMPLATE[:-2] + [output_name]
+    logger.debug(f"Started recording process with command: {' '.join(cmd)}")
     recording_process = subprocess.Popen(cmd, stdin=subprocess.PIPE)
 
     try:
@@ -107,7 +112,7 @@ def record_video(user_id, duration=None):
             recording_process.terminate()
             recording_process.wait()
     time.sleep(3) 
-    update_user(user_id, {"status": 1})
+    update_user(user_id, {"status": 1, "recorded_file_name": output_name})
     
 
 @app.post("/start")

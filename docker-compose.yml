@@ -2,6 +2,19 @@ version: "3.9"
 
 services:
 
+  expo-config-api:
+    container_name: expo-config-api
+    build:
+      context: ./config-api
+    ports:
+      - "8003:8003"
+    volumes:
+      - shared_data:/shared_data
+    environment:
+      - DOCKER=1
+    networks:
+      - exponetwork
+    restart: unless-stopped
   expo-robot:
     container_name: expo-robot
     build:
