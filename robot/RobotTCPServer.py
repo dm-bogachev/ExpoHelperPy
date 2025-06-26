@@ -58,6 +58,11 @@ class RobotTCPServer:
                     await self.dispatcher.send("PING", expect_response=True, expected="ALIVE")
                 except asyncio.TimeoutError:
                     logger.warning("Ping: timeout waiting for ALIVE")
+                    self.running = False
+                    if self.writer:
+                        self.writer.close()
+                        await self.writer.wait_closed()
+                    logger.info("Ping: robot disconnected due to timeout")
 
     async def _listen_loop(self):
         while self.running:

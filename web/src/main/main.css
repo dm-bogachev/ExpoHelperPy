@@ -40,6 +40,9 @@ h1 {
 .status-sent {
     background-color: rgba(24, 245, 98, 0.315) !important;
 }
+.status-recording {
+    background-color: rgba(255, 0, 0, 0.5) !important;
+}
 
 .action-btn {
     min-width: 90px;

@@ -42,7 +42,7 @@ while True:
         else:
             logger.info("No users with status 2 found.")
         
-        sleep(10)
+        sleep(2)
     
     except Exception as e:
         logger.error(f"Error occurred: {e}")

@@ -61,5 +61,9 @@ async def send_command(
     result = await dispatcher.send(command, expect_response=expect_response)
     return {"status": "sent", "response": result}
 
+@app.get("/status")
+async def robot_status():
+    return {"connected": robot.running}
+
 if __name__ == '__main__':
     uvicorn.run(app, host="0.0.0.0", port=8002)

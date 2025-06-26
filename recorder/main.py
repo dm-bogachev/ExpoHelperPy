@@ -1,5 +1,6 @@
 from multiprocessing import process
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from threading import Thread
 import subprocess
 import time
@@ -27,6 +28,14 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     # lifespan=lifespan
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 FFMPEG_CMD_TEMPLATE = [

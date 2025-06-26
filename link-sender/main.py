@@ -51,7 +51,7 @@ async def main():
                         logger.debug(f"User {user['id']} ({user['name']}) updated to status 4")
             else:
                 logger.info("No users with status 3 found.")
-            sleep(10)
+            sleep(2)
         except Exception as e:
             logger.error(f"Error occurred: {e}")
             sleep(10)
