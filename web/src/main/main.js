@@ -281,10 +281,10 @@ async function checkRobotStatus() {
 
 // Проверяем статус робота при загрузке и далее каждую секунду
 checkRobotStatus();
-setInterval(checkRobotStatus, 2000);
+setInterval(checkRobotStatus, 1000);
 
 fetchAndRenderUsers();
-setInterval(fetchAndRenderUsers, 5000);
+setInterval(fetchAndRenderUsers, 1000);
 
 document.addEventListener("DOMContentLoaded", () => {
     // Заменяем ссылки в футере на реальные пути
@@ -293,6 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
         footerLinks[0].href = `http://${host}/api/database/docs`;
         footerLinks[1].href =`http://${host}/api/recorder/docs`;
         footerLinks[2].href = `http://${host}/api/robot/docs`;
+        footerLinks[2].href = `http://${host}/api/settings/docs`;
     }
 
     const img = document.querySelector('img[alt="Камера"]');
@@ -380,8 +381,18 @@ async function loadJsonSettings() {
     const resp = await fetch(`${SETTINGS_URL}/configs`);
     const files = await resp.json();
     container.innerHTML = '';
+
+    // Добавляем кнопку "Сохранить все"
+    const saveAllBtn = document.createElement('button');
+    saveAllBtn.type = 'button';
+    saveAllBtn.className = 'btn btn-success btn-sm mb-3';
+    saveAllBtn.textContent = 'Сохранить';
+    container.appendChild(saveAllBtn);
+
+    // Для хранения ссылок на элементы и содержимое
+    const fileGroups = [];
+
     for (const fname of files) {
-        // Для каждого файла делаем отдельный запрос за содержимым
         let content = {};
         try {
             const fileResp = await fetch(`${SETTINGS_URL}/configs/${fname}`);
@@ -391,34 +402,97 @@ async function loadJsonSettings() {
         }
         const group = document.createElement('div');
         group.className = 'mb-3';
-        group.innerHTML = `
-            <label class="form-label fw-bold">${fname}</label>
-            <textarea class="form-control font-monospace" rows="6" style="font-size:0.95em;" id="json-edit-${fname}">${JSON.stringify(content, null, 2)}</textarea>
-            <button class="btn btn-primary btn-sm mt-2" data-fname="${fname}">Сохранить</button>
-            <div class="json-save-status mt-1 small"></div>
-        `;
+        group.innerHTML = `<label class="form-label fw-bold">${fname}</label>`;
+        const form = document.createElement('form');
+        form.className = 'row g-2 align-items-center mb-2';
+        Object.entries(content).forEach(([key, value], idx) => {
+            const col = document.createElement('div');
+            col.className = 'col-12 col-md-6';
+            let inputType = typeof value === 'number' ? 'number' : 'text';
+            if (typeof value === 'boolean') {
+                col.innerHTML = `
+                    <label class="form-label me-2">${key}:</label>
+                    <input type="checkbox" class="form-check-input" id="json-${fname}-${key}" ${value ? 'checked' : ''}>
+                `;
+            } else {
+                col.innerHTML = `
+                    <label class="form-label">${key}:</label>
+                    <input type="${inputType}" class="form-control" id="json-${fname}-${key}" value="${value}">
+                `;
+            }
+            // Каждый параметр на новой строке
+            col.classList.add('mb-2');
+            form.appendChild(col);
+        });
+        group.appendChild(form);
+
+        // Статус
+        var statusDiv = document.createElement('div');
+        statusDiv.className = 'json-save-status mt-1 small';
+        group.appendChild(statusDiv);
+
         container.appendChild(group);
 
-        group.querySelector('button').onclick = async function() {
-            const text = group.querySelector('textarea').value;
+        // Добавляем разделитель между группами (кроме последней)
+        container.appendChild(document.createElement('hr'));
+
+        // Сохраняем для общей кнопки
+        fileGroups.push({ fname, content, statusDiv });
+
+        // Локальная кнопка сохранить
+        // const saveBtn = document.createElement('button');
+        // saveBtn.type = 'button';
+        // saveBtn.className = 'btn btn-primary btn-sm mt-2';
+        // saveBtn.textContent = 'Сохранить';
+        // group.appendChild(saveBtn);
+
+        // Статус
+        statusDiv = document.createElement('div');
+        statusDiv.className = 'json-save-status mt-1 small';
+        group.appendChild(statusDiv);
+        container.appendChild(group);
+
+        // Сохраняем для общей кнопки
+        fileGroups.push({ fname, content, statusDiv });
+
+    }
+
+    // Обработчик для общей кнопки "Сохранить все"
+    saveAllBtn.onclick = async function() {
+        saveAllBtn.disabled = true;
+        saveAllBtn.textContent = 'Сохраняю...';
+        for (const { fname, content, statusDiv } of fileGroups) {
+            let newJson = {};
+            Object.entries(content).forEach(([key, value]) => {
+                const input = document.getElementById(`json-${fname}-${key}`);
+                if (!input) return;
+                if (typeof value === 'boolean') {
+                    newJson[key] = input.checked;
+                } else if (typeof value === 'number') {
+                    newJson[key] = input.value === "" ? null : Number(input.value);
+                } else {
+                    newJson[key] = input.value;
+                }
+            });
             try {
-                const json = JSON.parse(text);
                 const resp = await fetch(`${SETTINGS_URL}/configs/${fname}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(json)
+                    body: JSON.stringify(newJson)
                 });
                 if (resp.ok) {
-                    group.querySelector('.json-save-status').textContent = "Сохранено!";
-                    group.querySelector('.json-save-status').style.color = "green";
+                    statusDiv.textContent = "Сохранено!";
+                    statusDiv.style.color = "green";
                 } else {
-                    group.querySelector('.json-save-status').textContent = "Ошибка сохранения";
-                    group.querySelector('.json-save-status').style.color = "red";
+                    statusDiv.textContent = "Ошибка сохранения";
+                    statusDiv.style.color = "red";
                 }
             } catch (e) {
-                group.querySelector('.json-save-status').textContent = "Ошибка: " + e;
-                group.querySelector('.json-save-status').style.color = "red";
+                statusDiv.textContent = "Ошибка: " + e;
+                statusDiv.style.color = "red";
             }
-        };
-    }
+        }
+        saveAllBtn.disabled = false;
+        saveAllBtn.textContent = 'Сохранить все';
+    };
 }

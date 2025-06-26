@@ -8,12 +8,17 @@ class Robot(RobotTCPServer):
 
     def register_commands(self):
         # Реализуйте регистрацию команд и хэндлеров
-        self.register_handler(r'echo*', self.echo)
+        self.register_handler(r'STOP*', self.stop_record)
         # Добавьте свои команды
 
-    async def echo(self, data):
-        # Пример реализации обработчика команды
-        return f"Echo: {data}"
+    async def stop_record(self, command):
+        # Реализуйте логику остановки записи
+        response = requests.post(
+            'http://expo-recorder:8001/api/recorder/stop',
+            headers={'accept': 'application/json'},
+            data=''
+        )
+        return "Recording stopped"
     
 
 from fastapi import FastAPI, Query
@@ -23,6 +28,7 @@ import uvicorn
 import asyncio
 
 from CommandDispatcher import CommandDispatcher
+import requests
 
 
 @asynccontextmanager

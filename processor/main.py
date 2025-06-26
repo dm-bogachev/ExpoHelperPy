@@ -47,9 +47,10 @@ while True:
 
                     audio_enabled = Config.get("audio", True)
                     audio_path = Config.get("audio_path", "/shared_data/audio.mp3")
+                    watermark_path = Config.get("watermark_path", "/shared_data/watermark.png")
 
-                    if Config.get("watermark", True):
-                        watermark_path = Config.get("watermark_path", "/shared_data/watermark.png")
+                    if Config.get("watermark", True) and os.path.exists(watermark_path):
+                        
                         if audio_enabled and os.path.exists(audio_path):
                             ffmpeg_cmd = [
                                 "ffmpeg",

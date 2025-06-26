@@ -69,6 +69,7 @@ stop_flag = False
 
 import signal
 from datetime import datetime
+import requests
 
 def record_video(user_id, duration=None):
     Config.init()
@@ -91,7 +92,21 @@ def record_video(user_id, duration=None):
     else:
         cmd = FFMPEG_CMD_TEMPLATE[:-2] + [output_name]
     logger.debug(f"Started recording process with command: {' '.join(cmd)}")
+
+
     recording_process = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+    
+    # Send command to robot API to start
+
+    try:
+        response = requests.post(
+            "http://expo-robot:8002/api/robot/send?command=START&expect_response=false",
+            headers={"accept": "application/json"},
+            data=""
+        )
+        logger.info(f"Robot command response: {response.status_code} {response.text}")
+    except Exception as e:
+        logger.error(f"Failed to send command to robot: {e}")
 
     try:
         while recording_process.poll() is None:
