@@ -2,20 +2,15 @@ import json
 import os
 
 if os.environ.get("DOCKER"):
-    config_path = "/shared_data/configs/processor.json"
+    config_path = "/shared_data/configs/recorder.json"
 else:
-    config_path = os.path.join(os.path.dirname(__file__), 'local', "processor.json")
+    config_path = os.path.join(os.path.dirname(__file__), 'local', "recorder.json")
 os.makedirs(os.path.dirname(config_path), exist_ok=True)
 
 class Config:
     _config_file = config_path
     _default_config = {
-        "watermark": True,
-        "watermark_path": "/shared_data/watermark.png",
-        "audio": True,
-        "audio_path": "/shared_data/audio.mp3",
-        "video_cut_start": 0,
-        "video_cut_end": 1000,
+        "video_url": "http://127.0.0.1:3000/camera/mjpeg",
         "database_api_url": "http://expo-db:8000/api/database",
         "debug_level": "INFO",
     }

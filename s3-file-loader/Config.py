@@ -2,20 +2,19 @@ import json
 import os
 
 if os.environ.get("DOCKER"):
-    config_path = "/shared_data/configs/processor.json"
+    config_path = "/shared_data/configs/s3.json"
 else:
-    config_path = os.path.join(os.path.dirname(__file__), 'local', "processor.json")
+    config_path = os.path.join(os.path.dirname(__file__), 'local', "s3.json")
 os.makedirs(os.path.dirname(config_path), exist_ok=True)
 
 class Config:
     _config_file = config_path
     _default_config = {
-        "watermark": True,
-        "watermark_path": "/shared_data/watermark.png",
-        "audio": True,
-        "audio_path": "/shared_data/audio.mp3",
-        "video_cut_start": 0,
-        "video_cut_end": 1000,
+        "access_key": "YOUR_S3_ACCESS_KEY_ID",
+        "secret_key" : "YOUR_S3_SECRET_ACCESS_KEY",
+        "endpoint_url": "https://s3.twcstorage.ru",
+        "bucket_name": "YOUR_S3_BUCKET_NAME",
+
         "database_api_url": "http://expo-db:8000/api/database",
         "debug_level": "INFO",
     }

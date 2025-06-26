@@ -65,8 +65,12 @@ async def check_subscription(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return
 
     users = get_users_by_chat_id(chat_id)
-    if users and users[-1]["status"] == 4:
-        await context.bot.send_message(chat_id=chat_id, text=video_link_text.format(video_link=users[-1]["video_link"]), parse_mode="HTML")
-        update_user(users[-1]["id"], {"status": 5, "video_link": users[-1]["video_link"], "chat_id": chat_id, "name": users[-1]["name"]})
-    else:
-        await context.bot.send_message(chat_id=chat_id, text=unknown_command_text)
+    for user in users:
+        if user["status"] == 4:
+            await context.bot.send_message(chat_id=chat_id, text=video_link_text.format(video_link=user["video_link"]), parse_mode="HTML")
+            update_user(user["id"], {"status": 5, "video_link": user["video_link"], "chat_id": chat_id, "name": user["name"]})
+        else:
+            if user["status"] == 5:
+                continue
+            else:
+                await context.bot.send_message(chat_id=chat_id, text=unknown_command_text)
