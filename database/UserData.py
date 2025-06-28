@@ -13,6 +13,9 @@ status_list = {
     5: "Sent",
     10: "Recording",
     20: "Processing",
+    30: "RecordingError",
+    40: "ProcessingError",
+    50: "UploadError",
 }
 
 Base = declarative_base()

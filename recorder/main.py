@@ -38,15 +38,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-FFMPEG_CMD_TEMPLATE = [
-    "ffmpeg",
-    "-y",
-    "-i", Config.get("video_url"),
-    # "-vf", "scale=1920:1080",
-    "-c:v", "copy",
-    "-t", 10,
-    f"{shared_data_path}/raw_default.mp4"
-]
+
 
 # FFMPEG_CMD_TEMPLATE = [
 #     "ffmpeg",
@@ -70,9 +62,31 @@ stop_flag = False
 import signal
 from datetime import datetime
 import requests
+import threading
+
+def monitor_ffmpeg_stderr(process, user_id):
+    for line in iter(process.stderr.readline, b''):
+        decoded = line.decode(errors="ignore")
+        if "Connection to tcp://" in decoded and "failed" in decoded:
+            logger.error(f"FFmpeg connection error: {decoded.strip()}")
+            update_user(user_id, {"status": 30, "recorded_file_name": None})
+            try:
+                process.terminate()
+            except Exception as e:
+                logger.error(f"Error terminating ffmpeg: {e}")
+            break
 
 def record_video(user_id, duration=None):
     Config.init()
+    FFMPEG_CMD_TEMPLATE = [
+    "ffmpeg",
+    "-y",
+    "-i", Config.get("video_url"),
+    # "-vf", "scale=1920:1080",
+    "-c:v", "copy",
+    "-t", 10,
+    f"{shared_data_path}/raw_default.mp4"
+]   
     global recording_process, stop_flag
     user = get_user(user_id)
     logger.debug(f"Retrieved user data: {user}")
@@ -93,9 +107,21 @@ def record_video(user_id, duration=None):
         cmd = FFMPEG_CMD_TEMPLATE[:-2] + [output_name]
     logger.debug(f"Started recording process with command: {' '.join(cmd)}")
 
-
-    recording_process = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-    
+    try:
+        recording_process = subprocess.Popen(
+            cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            bufsize=1
+        )
+        # Запускаем мониторинг stderr в отдельном потоке
+        stderr_thread = threading.Thread(target=monitor_ffmpeg_stderr, args=(recording_process, user_id), daemon=True)
+        stderr_thread.start()
+    except Exception as e:
+        logger.error(f"Failed to start recording process: {e}")
+        update_user(user_id, {"status": 30, "recorded_file_name": None})
+        return
     # Send command to robot API to start
 
     try:
@@ -119,14 +145,20 @@ def record_video(user_id, duration=None):
                     logger.error(f"Error sending 'q' to ffmpeg: {e}")
                 recording_process.wait()
                 logger.info("Recording stopped by user")
+                
                 break
             time.sleep(0.5)
     except Exception as e:
         logger.error(f"Error while recording: {e}")
+        user.update({"status": 30, "recorded_file_name": None})
         if recording_process.poll() is None:
             recording_process.terminate()
             recording_process.wait()
     time.sleep(3) 
+    if not os.path.exists(output_name):
+        logger.error(f"Recording failed, file {output_name} not found")
+        update_user(user_id, {"status": 30, "recorded_file_name": None})
+        return
     update_user(user_id, {"status": 1, "recorded_file_name": output_name})
     
 

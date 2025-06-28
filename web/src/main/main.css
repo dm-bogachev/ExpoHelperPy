@@ -43,6 +43,9 @@ h1 {
 .status-recording {
     background-color: rgba(255, 0, 0, 0.5) !important;
 }
+.status-error {
+    background-color: rgba(255, 0, 0, 0.911) !important;
+}
 
 .action-btn {
     min-width: 90px;

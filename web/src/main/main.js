@@ -51,7 +51,12 @@ const statuses = {
         text: "Обрабатываю видео",
         icon: '<i class="fas fa-cog text-info" title="Обрабатываю видео"></i>',
         class: "status-recording"
-    }
+    },
+    "30": {
+        text: "Ошибка записи видео",
+        icon: '<i class="fas fa-exclamation-triangle text-danger" title="Ошибка записи видео"></i>',
+        class: "status-error"
+    },
 };
 
 function statusToText(status) {
