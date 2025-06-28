@@ -46,6 +46,11 @@ const statuses = {
         text: "Запись видео!",
         icon: '<i class="fas fa-video text-danger" title="Запись видео!"></i>',
         class: "status-recording"
+    },
+    "20": {
+        text: "Обрабатываю видео",
+        icon: '<i class="fas fa-cog text-info" title="Обрабатываю видео"></i>',
+        class: "status-recording"
     }
 };
 
@@ -71,7 +76,7 @@ function renderUsers(users) {
         const showMotor = Number(user.status) == 0; // Показывать только если статус -1, 0 или 1
         const tr = document.createElement('tr');
         tr.className = statusToRowClass(user.status);
-
+        // console.log(`Рендерим пользователя ${user.id} со статусом ${user.status} (${statusToText(user.status)})`);
         tr.innerHTML = `
             <td>${user.id}</td>
             <td>${user.name ?? ""}</td>

@@ -40,6 +40,8 @@ while True:
                 output_path = f"{shared_data_path}/output/{file_name}"
                 
                 if os.path.exists(input_path):
+
+                    update_user(user["id"], {"status": 20,})
                     # Get cut start/end from config
                     cut_start = Config.get("video_cut_start", 0)
                     cut_end = Config.get("video_cut_end", 1000)
