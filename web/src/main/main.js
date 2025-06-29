@@ -298,7 +298,7 @@ document.addEventListener("DOMContentLoaded", () => {
         footerLinks[0].href = `http://${host}/api/database/docs`;
         footerLinks[1].href =`http://${host}/api/recorder/docs`;
         footerLinks[2].href = `http://${host}/api/robot/docs`;
-        footerLinks[2].href = `http://${host}/api/settings/docs`;
+        footerLinks[3].href = `http://${host}/api/settings/docs`;
     }
 
     const img = document.querySelector('img[alt="Камера"]');
