@@ -38,6 +38,12 @@
 .PROGRAM pg100 ()
   TWAIT 1
 .END
+.PROGRAM service ()
+  TWAIT 1
+.END
+.PROGRAM gohome ()
+  TWAIT 1
+.END
 .PROGRAM tcp.client.pc ()
   DO
     ; Checking for active sockets and closing them
@@ -152,6 +158,14 @@
       PRINT tyterm: .$data[1]
       CALL pgexecute.pc
       RETURN
+    SVALUE "SERVICE\n":
+      PRINT tyterm: .$data[1]
+      CALL serviceexec.pc
+      RETURN
+    SVALUE "HOME\n":
+      PRINT tyterm: .$data[1]
+      CALL serviceexec.pc
+      RETURN
   END
   ;
   PRINT tyterm: "Unhandled message. Return ALIVE"
@@ -236,6 +250,62 @@
   $state = $state + "SAFETY_FENCE:" + $ENCODE(/L, -SWITCH(SAFETY_FENCE)) + ";"
   $state = $state + "HOME:" + $ENCODE(/L, -SIG(33)) + "\n"
 .END
+.PROGRAM serviceexec.pc ()
+  .permission = TRUE
+  IF SWITCH(EMERGENCY) THEN
+    PRINT tyterm: "Robot is in emergency state"
+    .permission = FALSE
+  END
+  IF NOT SWITCH(REPEAT) THEN
+    PRINT tyterm: "Robot is in teach state"
+    .permission = FALSE
+  END
+  IF SWITCH(TEACH_LOCK) THEN
+    PRINT tyterm: "Teach lock is on"
+    .permission = FALSE
+  END
+  IF SWITCH(CS) THEN
+    PRINT tyterm: "Another program is running"
+    .permission = FALSE
+  END
+  IF .permission THEN
+    IF NOT SWITCH(POWER) THEN
+      PRINT tyterm: "Turning on motor power"
+      MC ZPOWER ON
+      TWAIT 1
+    END
+    MC EXECUTE service
+  END
+  
+.END
+.PROGRAM homeexec.pc ()
+  .permission = TRUE
+  IF SWITCH(EMERGENCY) THEN
+    PRINT tyterm: "Robot is in emergency state"
+    .permission = FALSE
+  END
+  IF NOT SWITCH(REPEAT) THEN
+    PRINT tyterm: "Robot is in teach state"
+    .permission = FALSE
+  END
+  IF SWITCH(TEACH_LOCK) THEN
+    PRINT tyterm: "Teach lock is on"
+    .permission = FALSE
+  END
+  IF SWITCH(CS) THEN
+    PRINT tyterm: "Another program is running"
+    .permission = FALSE
+  END
+  IF .permission THEN
+    IF NOT SWITCH(POWER) THEN
+      PRINT tyterm: "Turning on motor power"
+      MC ZPOWER ON
+      TWAIT 1
+    END
+    MC EXECUTE gohome
+  END
+  
+.END
 .PROGRAM Comment___ () ; Comments for IDE. Do not use.
 	; @@@ PROJECT @@@
 	; @@@ PROJECTNAME @@@
@@ -249,6 +319,8 @@
 	; @@@ PROGRAM @@@
 	; 0:motion:F
 	; 0:pg100:F
+	; 0:service:F
+	; 0:gohome:F
 	; Group:TCPIP:1
 	; 1:tcp.client.pc:B
 	; .number 
@@ -275,6 +347,10 @@
 	; 0:pgexecute.pc:B
 	; .permission 
 	; 0:get.state.pc:B
+	; 0:serviceexec.pc:B
+	; .permission 
+	; 0:homeexec.pc:B
+	; .permission 
 	; @@@ TRANS @@@
 	; @@@ JOINTS @@@
 	; @@@ REALS @@@

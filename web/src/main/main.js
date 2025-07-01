@@ -269,11 +269,31 @@ async function checkRobotStatus() {
         if (!response.ok) throw new Error();
         const data = await response.json();
         const light = document.getElementById('robotStatusLight');
+        let btns = document.getElementById('robotControlBtns');
+        if (!btns) {
+            btns = document.createElement('span');
+            btns.id = 'robotControlBtns';
+            btns.style.marginLeft = '16px';
+            if (light && light.parentNode) {
+                light.parentNode.insertBefore(btns, light.nextSibling);
+            }
+        }
         if (light) {
             if (data.connected) {
                 light.style.background = '#28a745'; // green
+                btns.innerHTML = `
+                    <button id="robotHomeBtn" class="btn btn-outline-primary btn-sm me-2">Робота домой</button>
+                    <button id="robotServiceBtn" class="btn btn-outline-secondary btn-sm">Робота в сервис</button>
+                `;
+                document.getElementById('robotHomeBtn').onclick = async () => {
+                    await fetch(`${ROBOT_URL}/home`, { method: 'POST' });
+                };
+                document.getElementById('robotServiceBtn').onclick = async () => {
+                    await fetch(`${ROBOT_URL}/service`, { method: 'POST' });
+                };
             } else {
                 light.style.background = '#dc3545'; // red
+                btns.innerHTML = '';
             }
         }
     } catch {
@@ -281,6 +301,8 @@ async function checkRobotStatus() {
         if (light) {
             light.style.background = '#ccc'; // gray (unknown)
         }
+        const btns = document.getElementById('robotControlBtns');
+        if (btns) btns.innerHTML = '';
     }
 }
 
