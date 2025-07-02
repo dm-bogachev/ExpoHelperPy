@@ -16,6 +16,16 @@ class Config:
         "audio_path": "/shared_data/audio.mp3",
         "video_cut_start": 0,
         "video_cut_end": 1000,
+        "preview_image": True,
+        "preview_image_path": "/shared_data/preview.jpg",
+        "preview_image_duration": 5,
+        "preview_as_video": True,
+        #
+        "outro_image": True,
+        "outro_image_path": "/shared_data/outro.jpg",
+        "outro_image_duration": 5,
+        "outro_as_video": True,
+        #
         "database_api_url": "http://expo-db:8000/api/database",
         "debug_level": "INFO",
     }

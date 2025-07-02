@@ -38,15 +38,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-FFMPEG_CMD_TEMPLATE = [
-    "ffmpeg",
-    "-y",
-    "-i", Config.get("video_url"),
-    # "-vf", "scale=1920:1080",
-    "-c:v", "copy",
-    "-t", 10,
-    f"{shared_data_path}/raw_default.mp4"
-]
+
 
 # FFMPEG_CMD_TEMPLATE = [
 #     "ffmpeg",
@@ -73,6 +65,15 @@ import requests
 
 def record_video(user_id, duration=None):
     Config.init()
+    FFMPEG_CMD_TEMPLATE = [
+    "ffmpeg",
+    "-y",
+    "-i", Config.get("video_url"),
+    # "-vf", "scale=1920:1080",
+    "-c:v", "copy",
+    "-t", 10,
+    f"{shared_data_path}/raw_default.mp4"
+]
     global recording_process, stop_flag
     user = get_user(user_id)
     logger.debug(f"Retrieved user data: {user}")

@@ -67,6 +67,21 @@ async def send_command(
     result = await dispatcher.send(command, expect_response=expect_response)
     return {"status": "sent", "response": result}
 
+@app.post("/service")
+async def service_command():
+    result = await dispatcher.send("SERVICE", expect_response=False)
+    return {"status": "service", "response": result}
+
+@app.post("/home")
+async def home_command():
+    result = await dispatcher.send("HOME", expect_response=False)
+    return {"status": "home", "response": result}
+
+@app.post("/progon")
+async def progon_command():
+    result = await dispatcher.send("PROGON", expect_response=False)
+    return {"status": "home", "response": result}
+
 @app.get("/status")
 async def robot_status():
     return {"connected": robot.running}

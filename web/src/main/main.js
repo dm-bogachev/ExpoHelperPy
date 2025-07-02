@@ -46,6 +46,11 @@ const statuses = {
         text: "Запись видео!",
         icon: '<i class="fas fa-video text-danger" title="Запись видео!"></i>',
         class: "status-recording"
+    },
+    "20": {
+        text: "Обрабатываю видео",
+        icon: '<i class="fas fa-cog text-info" title="Обрабатываю видео"></i>',
+        class: "status-recording"
     }
 };
 
@@ -71,7 +76,7 @@ function renderUsers(users) {
         const showMotor = Number(user.status) == 0; // Показывать только если статус -1, 0 или 1
         const tr = document.createElement('tr');
         tr.className = statusToRowClass(user.status);
-
+        // console.log(`Рендерим пользователя ${user.id} со статусом ${user.status} (${statusToText(user.status)})`);
         tr.innerHTML = `
             <td>${user.id}</td>
             <td>${user.name ?? ""}</td>
@@ -264,11 +269,35 @@ async function checkRobotStatus() {
         if (!response.ok) throw new Error();
         const data = await response.json();
         const light = document.getElementById('robotStatusLight');
+        let btns = document.getElementById('robotControlBtns');
+        if (!btns) {
+            btns = document.createElement('span');
+            btns.id = 'robotControlBtns';
+            btns.style.marginLeft = '16px';
+            if (light && light.parentNode) {
+                light.parentNode.insertBefore(btns, light.nextSibling);
+            }
+        }
         if (light) {
             if (data.connected) {
                 light.style.background = '#28a745'; // green
+                btns.innerHTML = `
+                    <button id="robotProgonBtn" class="btn btn-outline-primary btn-sm">Прогон</button>
+                    <button id="robotHomeBtn" class="btn btn-outline-primary btn-sm me-2">Робота домой</button>
+                    <button id="robotServiceBtn" class="btn btn-outline-primary btn-sm me-2">Робота в сервис</button>
+                `;
+                document.getElementById('robotHomeBtn').onclick = async () => {
+                    await fetch(`${ROBOT_URL}/home`, { method: 'POST' });
+                };
+                document.getElementById('robotServiceBtn').onclick = async () => {
+                    await fetch(`${ROBOT_URL}/service`, { method: 'POST' });
+                };
+                document.getElementById('robotProgonBtn').onclick = async () => {
+                    await fetch(`${ROBOT_URL}/progon`, { method: 'POST' });
+                };
             } else {
                 light.style.background = '#dc3545'; // red
+                btns.innerHTML = '';
             }
         }
     } catch {
@@ -276,6 +305,8 @@ async function checkRobotStatus() {
         if (light) {
             light.style.background = '#ccc'; // gray (unknown)
         }
+        const btns = document.getElementById('robotControlBtns');
+        if (btns) btns.innerHTML = '';
     }
 }
 
@@ -284,7 +315,7 @@ checkRobotStatus();
 setInterval(checkRobotStatus, 1000);
 
 fetchAndRenderUsers();
-setInterval(fetchAndRenderUsers, 1000);
+setInterval(fetchAndRenderUsers, 2500);
 
 document.addEventListener("DOMContentLoaded", () => {
     // Заменяем ссылки в футере на реальные пути
@@ -293,7 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
         footerLinks[0].href = `http://${host}/api/database/docs`;
         footerLinks[1].href =`http://${host}/api/recorder/docs`;
         footerLinks[2].href = `http://${host}/api/robot/docs`;
-        footerLinks[2].href = `http://${host}/api/settings/docs`;
+        footerLinks[3].href = `http://${host}/api/settings/docs`;
     }
 
     const img = document.querySelector('img[alt="Камера"]');
