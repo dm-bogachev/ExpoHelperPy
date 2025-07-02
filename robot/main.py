@@ -77,6 +77,11 @@ async def home_command():
     result = await dispatcher.send("HOME", expect_response=False)
     return {"status": "home", "response": result}
 
+@app.post("/progon")
+async def progon_command():
+    result = await dispatcher.send("PROGON", expect_response=False)
+    return {"status": "home", "response": result}
+
 @app.get("/status")
 async def robot_status():
     return {"connected": robot.running}

@@ -282,14 +282,18 @@ async function checkRobotStatus() {
             if (data.connected) {
                 light.style.background = '#28a745'; // green
                 btns.innerHTML = `
+                    <button id="robotProgonBtn" class="btn btn-outline-primary btn-sm">Прогон</button>
                     <button id="robotHomeBtn" class="btn btn-outline-primary btn-sm me-2">Робота домой</button>
-                    <button id="robotServiceBtn" class="btn btn-outline-secondary btn-sm">Робота в сервис</button>
+                    <button id="robotServiceBtn" class="btn btn-outline-primary btn-sm me-2">Робота в сервис</button>
                 `;
                 document.getElementById('robotHomeBtn').onclick = async () => {
                     await fetch(`${ROBOT_URL}/home`, { method: 'POST' });
                 };
                 document.getElementById('robotServiceBtn').onclick = async () => {
                     await fetch(`${ROBOT_URL}/service`, { method: 'POST' });
+                };
+                document.getElementById('robotProgonBtn').onclick = async () => {
+                    await fetch(`${ROBOT_URL}/progon`, { method: 'POST' });
                 };
             } else {
                 light.style.background = '#dc3545'; // red
@@ -311,7 +315,7 @@ checkRobotStatus();
 setInterval(checkRobotStatus, 1000);
 
 fetchAndRenderUsers();
-setInterval(fetchAndRenderUsers, 1000);
+setInterval(fetchAndRenderUsers, 2500);
 
 document.addEventListener("DOMContentLoaded", () => {
     // Заменяем ссылки в футере на реальные пути
